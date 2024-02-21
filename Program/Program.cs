@@ -1,0 +1,219 @@
+﻿using System;
+using System.Threading;
+using System.Diagnostics;
+using System.Threading.Tasks;
+
+namespace Program
+{
+    internal abstract class Program
+    {
+        public static void Main()
+        {
+            Console.WriteLine("Сортування змiшуванням:");
+            Comparison(StandardShakerSort, StudentShakerSort);
+            
+            Console.WriteLine("\nСортування вставками:");
+            Comparison(StandardInsertionSort, StudentInsertionSort);
+        }
+        
+        private static void Comparison(Func<int[], int[]> standard, Func<int[], int[]> student)
+        {
+            int[] array = GenerateRandom(10000);
+
+            double standardTime, studentTime;
+            
+            int[] arrayForStandard = new int[array.Length], arrayForStudent = new int[array.Length];
+
+            using CancellationTokenSource cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+            array.CopyTo(arrayForStandard, 0);
+            array.CopyTo(arrayForStudent, 0);
+
+            try
+            {
+                Stopwatch stopwatch = Stopwatch.StartNew();
+                
+                standard(arrayForStandard);
+                
+                stopwatch.Stop();
+                standardTime = stopwatch.Elapsed.TotalMilliseconds;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Виняток викликав стандартний метод: {e.Message}"); 
+                return;
+            }
+
+            try
+            {
+                Stopwatch stopwatch = Stopwatch.StartNew();
+
+                Task<int[]> studentResult = Task.Run(() => student(arrayForStudent), cancellationTokenSource.Token);
+                
+                studentResult.Wait(cancellationTokenSource.Token);
+                
+                stopwatch.Stop();
+                studentTime = stopwatch.Elapsed.TotalMilliseconds;
+
+                if (!IsArraySorted(studentResult.Result))
+                {
+                    Console.WriteLine("Метод студента неправильно вiдсортував масив)");
+                    return;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                Console.WriteLine("Час виконання методу студента перевищив 5 секунд)");
+                return;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Винятком став студентський метод: {e.Message}");
+                return;
+            }
+
+            if (standardTime - 200 <= studentTime && studentTime <= standardTime + 200)
+            {
+                Console.WriteLine("Алгоритми мають однаковий час виконання!");
+            }
+            else
+            {
+                Console.WriteLine("Алгоритми мають однаковий час виконання!");
+            }
+        }
+        
+        private static int[] StandardInsertionSort(int[] array)
+        {
+            for (int i = 1; i < array.Length; ++i)
+            {
+                int key = array[i];
+                int j = i - 1;
+
+                while (j >= 0 && array[j] > key)
+                {
+                    array[j + 1] = array[j];
+                    j = j - 1;
+                }
+
+                array[j + 1] = key;
+            }
+
+            return array;
+        }
+        
+        private static int[] StudentInsertionSort(int[] array)
+        {
+            for (int i = 1; i < array.Length; ++i)
+            {
+                int key = array[i];
+                int j = i - 1;
+
+                while (j >= 0 && array[j] > key)
+                {
+                    array[j + 1] = array[j];
+                    j = j - 1;
+                }
+
+                array[j + 1] = key;
+            }
+
+            return array;
+        }
+        
+        private static int[] StandardShakerSort(int[] array)
+        {
+            int length = array.Length;
+            bool swapped;
+
+            do
+            {
+                swapped = false;
+                
+                for (int i = 0; i < length - 1; i++)
+                {
+                    if (array[i] > array[i + 1])
+                    {
+                        (array[i], array[i + 1]) = (array[i + 1], array[i]);
+                        swapped = true;
+                    }
+                }
+                
+                if (!swapped) break;
+                
+                swapped = false;
+                
+                for (int i = length - 1; i > 0; i--)
+                {
+                    if (array[i - 1] > array[i])
+                    {
+                        
+                        (array[i - 1], array[i]) = (array[i], array[i - 1]);
+                        swapped = true;
+                    }
+                }
+
+            } while (swapped);
+
+            return array;
+        }
+        
+        private static int[] StudentShakerSort(int[] array)
+        {
+            int length = array.Length;
+            bool swapped;
+
+            do
+            {
+                swapped = false;
+                
+                for (int i = 0; i < length - 1; i++)
+                {
+                    if (array[i] > array[i + 1])
+                    {
+                        (array[i], array[i + 1]) = (array[i + 1], array[i]);
+                        swapped = true;
+                    }
+                }
+                
+                if (!swapped) break;
+                
+                swapped = false;
+                
+                for (int i = length - 1; i > 0; i--)
+                {
+                    if (array[i - 1] > array[i])
+                    {
+                        
+                        (array[i - 1], array[i]) = (array[i], array[i - 1]);
+                        swapped = true;
+                    }
+                }
+
+            } while (swapped);
+
+            return array;
+        }
+        private static int[] GenerateRandom(int size)
+        {
+            var random = new Random();
+            var array = new int[size];
+
+            for (int i = 0; i < size; i++)
+            {
+                array[i] = random.Next(10000);
+            }
+
+            return array;
+        }
+
+        private static bool IsArraySorted(int[] arr)
+        {
+            for (int i = 0; i < arr.Length - 1; i++)
+            {
+                if (arr[i] > arr[i + 1]) return false;
+            }
+
+            return true;
+        }
+    }
+}
