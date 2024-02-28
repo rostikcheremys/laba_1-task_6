@@ -32,15 +32,15 @@ namespace Program
             try
             {
                 Stopwatch stopwatch = Stopwatch.StartNew();
-                
                 standard(arrayForStandard);
                 
                 stopwatch.Stop();
                 standardTime = stopwatch.Elapsed.TotalMilliseconds;
+                Console.WriteLine($"Час виконання стандартного алгоритму: {standardTime} мс");
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Виняток викликав стандартний метод: {e.Message}"); 
+                Console.WriteLine($"Помилка у стандартному методі: {e.Message}"); 
                 return;
             }
 
@@ -49,11 +49,11 @@ namespace Program
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
                 Task<int[]> studentResult = Task.Run(() => student(arrayForStudent), cancellationTokenSource.Token);
-                
                 studentResult.Wait(cancellationTokenSource.Token);
                 
                 stopwatch.Stop();
                 studentTime = stopwatch.Elapsed.TotalMilliseconds;
+                Console.WriteLine($"Час виконання студентського алгоритму: {studentTime} мс");
 
                 if (!IsArraySorted(studentResult.Result))
                 {
@@ -68,7 +68,7 @@ namespace Program
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Винятком став студентський метод: {e.Message}");
+                Console.WriteLine($"Помилка у студентському методі: {e.Message}");
                 return;
             }
 
@@ -78,7 +78,7 @@ namespace Program
             }
             else
             {
-                Console.WriteLine("Алгоритми мають однаковий час виконання!");
+                Console.WriteLine("Алгоритми мають різний час виконання!");
             }
         }
         
