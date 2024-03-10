@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Diagnostics;
-using System.Threading.Tasks;
 
 namespace Program
 {
@@ -10,13 +9,13 @@ namespace Program
         public static void Main()
         {
             Console.WriteLine("Сортування змiшуванням:");
-            Comparison(StandardShakerSort, StudentShakerSort);
+            CompareSortingMethods(StandardShakerSort, StudentShakerSort);
             
             Console.WriteLine("\nСортування вставками:");
-            Comparison(StandardInsertionSort, StudentInsertionSort);
+            CompareSortingMethods(StandardInsertionSort, StudentInsertionSort);
         }
         
-        private static void Comparison(Func<int[], int[]> standard, Func<int[], int[]> student)
+        private static void CompareSortingMethods(Func<int[], int[]> standard, Func<int[], int[]> student)
         {
             int[] array = GenerateRandom(10000);
 
@@ -31,33 +30,23 @@ namespace Program
 
             try
             {
-                Stopwatch stopwatch = Stopwatch.StartNew();
-                standard(arrayForStandard);
-                
-                stopwatch.Stop();
-                standardTime = stopwatch.Elapsed.TotalMilliseconds;
+                standardTime = MeasureTime(standard, arrayForStandard);
                 Console.WriteLine($"Час виконання стандартного алгоритму: {standardTime} мс");
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Помилка у стандартному методі: {e.Message}"); 
+                Console.WriteLine($"Помилка у стандартному методі: {e.Message}");
                 return;
             }
 
             try
             {
-                Stopwatch stopwatch = Stopwatch.StartNew();
-
-                Task<int[]> studentResult = Task.Run(() => student(arrayForStudent), cancellationTokenSource.Token);
-                studentResult.Wait(cancellationTokenSource.Token);
-                
-                stopwatch.Stop();
-                studentTime = stopwatch.Elapsed.TotalMilliseconds;
+                studentTime = MeasureTime(student, arrayForStudent);
                 Console.WriteLine($"Час виконання студентського алгоритму: {studentTime} мс");
 
-                if (!IsArraySorted(studentResult.Result))
+                if (!IsArraySorted(arrayForStudent))
                 {
-                    Console.WriteLine("Метод студента неправильно вiдсортував масив)");
+                    Console.WriteLine("Метод студента неправильно відсортував масив)");
                     return;
                 }
             }
@@ -80,6 +69,15 @@ namespace Program
             {
                 Console.WriteLine("Алгоритми мають різний час виконання!");
             }
+        }
+        
+        private static double MeasureTime(Func<int[], int[]> sortingAlgorithm, int[] array)
+        {
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            sortingAlgorithm(array);
+            stopwatch.Stop();
+
+            return stopwatch.Elapsed.TotalMilliseconds;
         }
         
         private static int[] StandardInsertionSort(int[] array)
