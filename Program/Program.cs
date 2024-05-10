@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace Program
 {
@@ -22,8 +23,6 @@ namespace Program
             double standardTime, studentTime;
             
             int[] arrayForStandard = new int[array.Length], arrayForStudent = new int[array.Length];
-
-            using CancellationTokenSource cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
             array.CopyTo(arrayForStandard, 0);
             array.CopyTo(arrayForStudent, 0);
@@ -52,7 +51,7 @@ namespace Program
             }
             catch (OperationCanceledException)
             {
-                Console.WriteLine("Час виконання методу студента перевищив 5 секунд)");
+                Console.WriteLine("Час виконання методу студента перевищив 5 секунд!");
                 return;
             }
             catch (Exception e)
@@ -71,10 +70,15 @@ namespace Program
             }
         }
         
-        private static double MeasureTime(Func<int[], int[]> sortingAlgorithm, int[] array)
+        private static double MeasureTime(Func<int[], int[]> sort, int[] array)
         {
+            using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            
             Stopwatch stopwatch = Stopwatch.StartNew();
-            sortingAlgorithm(array);
+            
+            Task<int[]> task = Task.Run(() => sort(array), cts.Token);
+            task.Wait(cts.Token);
+            
             stopwatch.Stop();
 
             return stopwatch.Elapsed.TotalMilliseconds;
@@ -92,10 +96,9 @@ namespace Program
                     array[j + 1] = array[j];
                     j = j - 1;
                 }
-
                 array[j + 1] = key;
             }
-
+            
             return array;
         }
         
@@ -114,7 +117,7 @@ namespace Program
 
                 array[j + 1] = key;
             }
-
+            
             return array;
         }
         
